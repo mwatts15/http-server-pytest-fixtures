@@ -46,7 +46,8 @@ class ServerData:
         return basic_handler(self)
 
     def trust_server(self, session):
-        session.mount(self.url, _https_server_adapter(self.ssl_context))
+        if hasattr(self, 'ssl_context'):
+            session.mount(self.url, _https_server_adapter(self.ssl_context))
 
 
 @contextmanager
