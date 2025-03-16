@@ -120,13 +120,15 @@ def _sslify(server_data):
         raise Exception('Environment variables HTTPS_PYTEST_FIXTURES_CERT and'
                 ' HTTPS_PYTEST_FIXTURES_KEY must be defined for https_server')
 
+    server_data.server_ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     server_data.server.socket = \
-        ssl.wrap_socket(server_data.server.socket,
-                        certfile=cert_path,
-                        keyfile=cert_key,
+        server_data.server_ssl_context.wrap_socket(server_data.server.socket,
                         server_side=True)
-    server_data.ssl_context = ssl.SSLContext()
+    server_data.server_ssl_context.load_cert_chain(certfile=cert_path,
+                                            keyfile=cert_key)
+    server_data.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     server_data.ssl_context.load_verify_locations(cert_path)
+    server_data.ssl_context.check_hostname = False
     server_data.scheme = 'https'
 
 
@@ -147,9 +149,12 @@ def make_server(server_data, handler=None):
     port = 8000
     while True:
         try:
-            server = HTTPServer(('127.0.0.1', port), handler)
+            L.info("Attempting to start on port %d", port)
+            server = HTTPServer(('localhost', port), handler)
+            L.info("Started on port %d", port)
             break
         except OSError as e:
+            L.warn("Failed to start on port %d", port, exc_info=True)
             if e.errno != 98:
                 raise
             port += 1
