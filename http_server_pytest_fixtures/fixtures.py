@@ -149,12 +149,12 @@ def make_server(server_data, handler=None):
     port = 8000
     while True:
         try:
-            L.info("Attempting to start on port %d", port)
+            L.debug("Attempting to start on port %d", port)
             server = HTTPServer(('localhost', port), handler)
-            L.info("Started on port %d", port)
+            L.debug("Started on port %d", port)
             break
         except OSError as e:
-            L.warn("Failed to start on port %d", port, exc_info=True)
+            L.debug("Failed to start on port %d", port, exc_info=True)
             if e.errno != 98:
                 raise
             port += 1
